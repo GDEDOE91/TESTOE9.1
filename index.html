@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Communication Matrix</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .month-header {
+            background-color: #e0e0e0;
+            font-weight: bold;
+        }
+        .progress-container {
+            display: flex;
+            align-items: center;
+        }
+        .progress-bar {
+            width: 100px;
+            height: 20px;
+            background-color: #f4f4f4;
+            border: 1px solid #ddd;
+            margin-right: 10px;
+            position: relative;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #4caf50;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .btn {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        select {
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+<style>
+    .status-behind {
+        animation: flash-red 1s infinite;
+    }
+
+    @keyframes flash-red {
+        0% {
+            background-color: red;
+            color: white;
+        }
+        50% {
+            background-color: transparent;
+            color: red;
+        }
+        100% {
+            background-color: red;
+            color: white;
+        }
+    }
+.flashing-red {
+    animation: flash-red 1s infinite;
+    color: white;
+    background-color: red;
+    font-weight: bold;
+    text-align: center;
+}
+
+@keyframes flash-red {
+    0% { background-color: red; }
+    50% { background-color: darkred; }
+    100% { background-color: red; }
+}
+</style>
+    </style>
+    <script>
+        const months = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+
+        function updatePlan(rowId) {
+            const row = document.getElementById(rowId);
+            const frequency = row.querySelector('select').value;
+            const planCheckboxes = row.querySelectorAll('input.plan-checkbox');
+            planCheckboxes.forEach((checkbox, index) => {
+                checkbox.checked = false; // Reset all checkboxes
+                checkbox.disabled = true; // Lock all checkboxes
+            });
+
+            switch (frequency) {
+                case 'weekly':
+                case 'monthly':
+                    planCheckboxes.forEach(checkbox => {
+                        checkbox.checked = true;
+                    });
+                    break;
+                case 'quarterly':
+                    planCheckboxes[2].checked = true; // March
+                    planCheckboxes[5].checked = true; // June
+                    planCheckboxes[8].checked = true; // September
+                    planCheckboxes[11].checked = true; // December
+                    break;
+                case '6months':
+                    planCheckboxes[5].checked = true; // June
+                    planCheckboxes[11].checked = true; // December
+                    break;
+                case 'yearly':
+                    planCheckboxes[11].checked = true; // December
+                    break;
+            }
+
+            // Update progress bar and status column
+            updateProgress(rowId);
+            updateStatus(rowId);
+        }
+
+        function updateProgress(rowId) {
+            const row = document.getElementById(rowId);
+            const planCheckboxes = row.querySelectorAll('input.plan-checkbox');
+            const actualCheckboxes = row.querySelectorAll('input[type="checkbox"]:not(.plan-checkbox)');
+            const progressBarFill = row.querySelector('.progress-bar-fill');
+            let planCount = 0;
+            let completedCount = 0;
+
+            // Count how many "Plan" boxes are checked and corresponding "Actual" boxes are checked
+            planCheckboxes.forEach((planCheckbox, index) => {
+                if (planCheckbox.checked) {
+                    planCount++;
+                    if (actualCheckboxes[index].checked) {
+                        completedCount++;
+                    }
+                }
+            });
+
+            const progress = planCount > 0 ? (completedCount / planCount) * 100 : 0;
+            progressBarFill.style.width = progress + '%';
+        }
+
+        function updateStatus(rowId) {
+            const row = document.getElementById(rowId);
+            const planCheckboxes = row.querySelectorAll('input.plan-checkbox');
+            const statusCell = row.querySelector('.status-cell');
+            const currentMonth = new Date().getMonth();
+
+            let isBehind = false;
+
+            planCheckboxes.forEach((planCheckbox, index) => {
+                if (planCheckbox.checked && index < currentMonth) {
+                    isBehind = true;
+                }
+            });
+
+            if (isBehind) {
+                statusCell.textContent = "Behind";
+                alert(`Row ${rowId.split('-')[1]} is behind schedule!`);
+            } else {
+                statusCell.textContent = "On Track";
+            }
+        }
+
+        function sendReminder(rowId) {
+            alert(`Reminder email sent for row #${rowId.split('-')[1]}!`);
+        }
+function updateStatus(rowId) {
+    const row = document.getElementById(rowId);
+    const planCheckboxes = row.querySelectorAll('input.plan-checkbox');
+    const statusCell = row.querySelector('.status-cell');
+    const currentMonth = new Date().getMonth();
+
+    let isBehind = false;
+
+    planCheckboxes.forEach((planCheckbox, index) => {
+        if (planCheckbox.checked && index < currentMonth) {
+            isBehind = true;
+        }
+    });
+
+    if (isBehind) {
+        statusCell.textContent = "Behind";
+        statusCell.classList.add('flashing-red'); // Add flashing effect
+        alert(`Row ${rowId.split('-')[1]} is behind schedule!`);
+    } else {
+        statusCell.textContent = "On Track";
+        statusCell.classList.remove('flashing-red'); // Remove flashing effect
+    }
+}
+
+    function updateStatus(rowId) {
+        const row = document.getElementById(rowId);
+        const planCheckboxes = row.querySelectorAll('input.plan-checkbox');
+        const actualCheckboxes = row.querySelectorAll('input[type="checkbox"]:not(.plan-checkbox)');
+        const statusCell = row.querySelector('.status-cell');
+        const currentMonth = new Date().getMonth();
+
+        let isBehind = false;
+
+        planCheckboxes.forEach((planCheckbox, index) => {
+            if (planCheckbox.checked && index < currentMonth && !actualCheckboxes[index].checked) {
+                isBehind = true;
+            }
+        });
+
+        if (isBehind) {
+            statusCell.textContent = "Behind";
+            statusCell.classList.add('flashing-red'); // Add flashing effect
+        } else {
+            statusCell.textContent = "On Track";
+            statusCell.classList.remove('flashing-red'); // Remove flashing effect
+        }
+    }
+
+    function sendReminder(rowId) {
+        alert(`Reminder email sent for row #${rowId.split('-')[1]}!`);
+    }
+
+    function sendEmailsToBehindRows() {
+        const rows = document.querySelectorAll('tbody tr'); // Select all rows in the table body
+        let behindRows = [];
+
+        rows.forEach(row => {
+            const statusCell = row.querySelector('.status-cell');
+            if (statusCell && statusCell.textContent === "Behind") {
+                behindRows.push(row.id);
+            }
+        });
+
+        if (behindRows.length > 0) {
+            behindRows.forEach(rowId => {
+                sendReminder(rowId); // Send reminder for each row behind
+            });
+            alert(`${behindRows.length} reminder emails sent for rows behind schedule!`);
+        } else {
+            alert('No rows are behind schedule.');
+        }
+    }
+
+
+// Save the selection to localStorage
+    function saveSelection(rowId) {
+        const row = document.getElementById(rowId);
+        const frequency = row.querySelector('select').value;
+        localStorage.setItem(`frequency-${rowId}`, frequency);
+    }
+
+    // Load the saved selection from localStorage
+    function loadSelections() {
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const rowId = row.id;
+            const selectElement = row.querySelector('select');
+            const savedFrequency = localStorage.getItem(`frequency-${rowId}`);
+            if (savedFrequency) {
+                selectElement.value = savedFrequency;
+                updatePlan(rowId); // Reapply the selection effects
+            }
+        });
+    }
+
+    // Call loadSelections on page load
+    window.onload = function () {
+        loadSelections();
+    };
+    </script>
+</head>
+<body>
+    <h1>Communication Matrix</h1>
+    <table>
+        <thead>
+            <tr>
+                <th rowspan="3">#</th>
+                <th rowspan="3">Information Type</th>
+                <th rowspan="3">Senders</th>
+                <th rowspan="3">Receivers</th>
+                <th rowspan="3">Sensitivity</th>
+                <th rowspan="3">Report Type</th>
+                <th rowspan="3">Communication Method</th>
+                <th rowspan="3">Frequency</th>
+                <th rowspan="3">Internal/External</th>
+                <th rowspan="3">Classification</th>
+                <th colspan="36">Months</th>
+                <th rowspan="3">Actions</th>
+                <th rowspan="3">Progress</th>
+                <th rowspan="3">Status</th>
+                                         <th     rowspan="3"><button id="send-emailbutton"                                                onclick="sendEmailsToBehindRows()">Send Reminder Emails to                                               Rows Behind</button>
+            </tr>
+            <tr>
+                <th class="month-header" colspan="3">January</th>
+                <th class="month-header" colspan="3">February</th>
+                <th class="month-header" colspan="3">March</th>
+                <th class="month-header" colspan="3">April</th>
+                <th class="month-header" colspan="3">May</th>
+                <th class="month-header" colspan="3">June</th>
+                <th class="month-header" colspan="3">July</th>
+                <th class="month-header" colspan="3">August</th>
+                <th class="month-header" colspan="3">September</th>
+                <th class="month-header" colspan="3">October</th>
+                <th class="month-header" colspan="3">November</th>
+                <th class="month-header" colspan="3">December</th>
+            </tr>
+            <tr>
+                <th>Plan</th>
+                <th>Actual</th>
+                <th>Upload</th>
+                <th>Plan</th>
+                <th>Actual</th>
+                <th>Upload</th>
+                <th>Plan</th>
+                <th>Actual</th>
+                <th>Upload</th>
+                <th>Plan</th>
+                <th>Actual</th>
+                <th>Upload</th>
+                <th>Plan</th>
+                <th>Actual</th>
+                <th>Upload</th>
+                <th>Plan</th>
+                <th>Actual</th>
+                <th>Upload</th>
+                <th>Plan</th>
+                <th>Actual</th>
+                <th>Upload</th>
+                <th>Plan</th>
+                <th>Actual</th>
+                <th>Upload</th>
+                <th>Plan</th>
+                <th>Actual</th>
+                <th>Upload</th>
+                <th>Plan</th>
+                <th>Actual</th>
+                <th>Upload</th>
+                <th>Plan</th>
+                <th>Actual</th>
+                <th>Upload</th>
+                <th>Plan</th>
+                <th>Actual</th>
+                <th>Upload</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Row 1 -->
+            <tr id="row-1">
+                <td>1</td>
+                <td>Vision & Mission Statement</td>
+                <td>Director</td>
+                <td>GCED Employees</td>
+                <td>Company General Use</td>
+                <td>Email</td>
+                <td>Event/Special</td>
+                <td>
+                    <select onchange="updatePlan('row-1'); saveSelection('row-1');">
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">Quarterly</option>
+                        <option value="6months">6 months</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                </td>
+                <td>Internal</td>
+                <td>General</td>
+                <!-- Plan/Actual/Upload cells are repeated similarly -->
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-1')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-1')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-1')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-1')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-1')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-1')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-1')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-1')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-1')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-1')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-1')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-1')"></td>
+                <td><input type="file"></td>
+                <!-- Repeat for all months -->
+                <td>
+                    <button class="btn" onclick="sendReminder('row-1')">Send Reminder</button>
+                </td>
+                <td>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+                </td>
+                <td class="status-cell">On Track</td>
+            </tr>
+           
+            <!-- Row 2 -->
+            <tr id="row-2">
+                <!-- Content identical to Row 1 but referencing row-2 -->
+                <td>2</td>
+                <td>Weekly Updates</td>
+                <td>Manager</td>
+                <td>Teams</td>
+                <td>Confidential</td>
+                <td>Report</td>
+                <td>Online Portal</td>
+                <td>
+                    <select onchange="updatePlan('row-2'); saveSelection('row-2');">
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">Quarterly</option>
+                        <option value="6months">6 months</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                </td>
+                <td>Internal</td>
+                <td>Restricted</td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-2')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-2')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-2')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-2')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-2')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-2')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-2')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-2')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-2')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-2')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-2')"></td>
+                <td><input type="file"></td>
+                <td><input type="checkbox" class="plan-checkbox" disabled></td>
+                <td><input type="checkbox" onchange="updateProgress('row-2')"></td>
+                <td><input type="file"></td>
+                <!-- Repeat for all months -->
+                <td>
+                    <button class="btn" onclick="sendReminder('row-2')">Send Reminder</button>
+                </td>
+                <td>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+                </td>
+                <td class="status-cell">On Track</td>
+            </tr>
+
+    <!-- Row 3 -->
+    <tr id="row-3">
+        <td>3</td>
+        <td>Monthly Newsletter</td>
+        <td>Communications Team</td>
+        <td>All Employees</td>
+        <td>Company General Use</td>
+        <td>Email</td>
+        <td>Newsletter</td>
+        <td>
+            <select onchange="updatePlan('row-3'); saveSelection('row-3');">
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="quarterly">Quarterly</option>
+                <option value="6months">6 months</option>
+                <option value="yearly">Yearly</option>
+            </select>
+        </td>
+        <td>Internal</td>
+        <td>General</td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-3')"></td>
+        <td><input type="file"></td>
+<td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-3')"></td>
+        <td><input type="file"></td>
+<td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-3')"></td>
+        <td><input type="file"></td>
+<td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-3')"></td>
+        <td><input type="file"></td>
+<td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-3')"></td>
+        <td><input type="file"></td>
+<td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-3')"></td>
+        <td><input type="file"></td>
+<td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-3')"></td>
+        <td><input type="file"></td>
+<td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-3')"></td>
+        <td><input type="file"></td>
+<td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-3')"></td>
+        <td><input type="file"></td>
+<td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-3')"></td>
+        <td><input type="file"></td>
+<td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-3')"></td>
+        <td><input type="file"></td>
+<td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-3')"></td>
+        <td><input type="file"></td>
+        <!-- Repeat Plan/Actual/Upload cells for all months -->
+        <td>
+            <button class="btn" onclick="sendReminder('row-3')">Send Reminder</button>
+        </td>
+        <td>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-bar-fill"></div>
+                </div>
+            </div>
+        </td>
+        <td class="status-cell">On Track</td>
+    </tr>
+
+    <!-- Row 4 -->
+    <tr id="row-4">
+        <td>4</td>
+        <td>Quarterly Financial Report</td>
+        <td>Finance Department</td>
+        <td>Executive Team</td>
+        <td>Confidential</td>
+        <td>Report</td>
+        <td>Email</td>
+        <td>
+            <select onchange="updatePlan('row-4'); saveSelection('row-4');">
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="quarterly">Quarterly</option>
+                <option value="6months">6 months</option>
+                <option value="yearly">Yearly</option>
+            </select>
+        </td>
+        <td>Internal</td>
+        <td>Restricted</td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-4')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-4')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-4')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-4')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-4')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-4')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-4')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-4')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-4')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-4')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-4')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-4')"></td>
+        <td><input type="file"></td>
+        <!-- Repeat Plan/Actual/Upload cells for all months -->
+        <td>
+            <button class="btn" onclick="sendReminder('row-4')">Send Reminder</button>
+        </td>
+        <td>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-bar-fill"></div>
+                </div>
+            </div>
+        </td>
+        <td class="status-cell">On Track</td>
+    </tr>
+
+    <!-- Row 5 -->
+    <tr id="row-5">
+        <td>5</td>
+        <td>Safety Training Updates</td>
+        <td>Safety Officer</td>
+        <td>All Departments</td>
+        <td>Confidential</td>
+        <td>Training</td>
+        <td>Online Portal</td>
+        <td>
+            <select onchange="updatePlan('row-5'); saveSelection('row-5');">
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="quarterly">Quarterly</option>
+                <option value="6months">6 months</option>
+                <option value="yearly">Yearly</option>
+            </select>
+        </td>
+        <td>Internal</td>
+        <td>Critical</td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-5')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-5')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-5')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-5')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-5')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-5')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-5')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-5')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-5')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-5')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-5')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-5')"></td>
+        <td><input type="file"></td>
+        <!-- Repeat Plan/Actual/Upload cells for all months -->
+        <td>
+            <button class="btn" onclick="sendReminder('row-5')">Send Reminder</button>
+        </td>
+        <td>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-bar-fill"></div>
+                </div>
+            </div>
+        </td>
+        <td class="status-cell">On Track</td>
+    </tr>
+
+    <!-- Row 6 -->
+    <tr id="row-6">
+        <td>6</td>
+        <td>Year-End Review</td>
+        <td>HR Department</td>
+        <td>Executive Team</td>
+        <td>Highly Confidential</td>
+        <td>Report</td>
+        <td>Email</td>
+        <td>
+            <select onchange="updatePlan('row-6'); saveSelection('row-6');">
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="quarterly">Quarterly</option>
+                <option value="6months">6 months</option>
+                <option value="yearly">Yearly</option>
+            </select>
+        </td>
+        <td>Internal</td>
+        <td>Critical</td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-6')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-6')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-6')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-6')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-6')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-6')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-6')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-6')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-6')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-6')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-6')"></td>
+        <td><input type="file"></td>
+        <td><input type="checkbox" class="plan-checkbox" disabled></td>
+        <td><input type="checkbox" onchange="updateProgress('row-6')"></td>
+        <td><input type="file"></td>
+        <!-- Repeat Plan/Actual/Upload cells for all months -->
+        <td>
+            <button class="btn" onclick="sendReminder('row-6')">Send Reminder</button>
+        </td>
+        <td>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-bar-fill"></div>
+                </div>
+            </div>
+        </td>
+        <td class="status-cell">On Track</td>
+    </tr>
+</tbody>
+        </tbody>
+    </table>
+</body>
+</html>
